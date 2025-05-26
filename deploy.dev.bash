@@ -30,16 +30,6 @@ echo "success: Variables d'environnement chargées avec succès"
 STACK_NAME="traefik-${ENV}"
 SERVICE_NAME="${STACK_NAME}_traefik"
 
-# Mettre à jour l'image
-echo "waiting: Mise à jour de l'image..."
-docker pull ${IMAGE}
-echo "success: Mise à jour de l'image réussie"
-
-# Supprimer le service existant
-echo "waiting: Suppression du service existant..."
-docker service rm ${SERVICE_NAME} 2>/dev/null || true
-echo "success: Suppression du service existant réussie"
-
 # Déployer le stack
 echo "waiting: Déploiement du stack ${STACK_NAME}..."
 docker stack deploy -c docker-compose.yml ${STACK_NAME}
