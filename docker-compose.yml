@@ -41,11 +41,11 @@ services:
         - "traefik.http.routers.api-http.middlewares=api-https-redirect"
         - "traefik.http.middlewares.api-https-redirect.redirectscheme.scheme=https"
         # Auth Headers
-        - "traefik.http.routers.api.middlewares=core-api-headers"
-        - "traefik.http.middlewares.core-api-headers.headers.sslredirect=true"
-        - "traefik.http.middlewares.core-api-headers.headers.stsincludesubdomains=true"
-        - "traefik.http.middlewares.core-api-headers.headers.stspreload=true"
-        - "traefik.http.middlewares.core-api-headers.headers.stsseconds=31536000"
+        - "traefik.http.routers.api.middlewares=core-api-dev-headers"
+        - "traefik.http.middlewares.core-api-dev-headers.headers.sslredirect=true"
+        - "traefik.http.middlewares.core-api-dev-headers.headers.stsincludesubdomains=true"
+        - "traefik.http.middlewares.core-api-dev-headers.headers.stspreload=true"
+        - "traefik.http.middlewares.core-api-dev-headers.headers.stsseconds=31536000"
     networks:
       - traefik-public
 
