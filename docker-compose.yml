@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=false"  # Changé à false pour sécuriser le dashboard
+      - "--providers.docker=true"
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik-public"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"  # Ajout du point d'entrée HTTPS
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=melcedricdatcha@gmail.com"  # Remplacez par votre email
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--metrics.prometheus=true"  # Activer les métriques
+      - "--accesslog=true"          # Activer les logs d'accès
+    ports:
+      - "80:80"
+      - "443:443"  # Exposition du port HTTPS
+      - "8088:8080"  # Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt  # Volume pour stocker les certificats
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.api.rule=Host(`${GATEWAY_DOMAIN_NAME}`)"
+        - "traefik.http.routers.api.service=api@internal"
+        - "traefik.http.routers.api.entrypoints=websecure"
+        - "traefik.http.routers.api.tls=true"
+        - "traefik.http.routers.api.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.api-http.rule=Host(`${GATEWAY_DOMAIN_NAME}`)"
+        - "traefik.http.routers.api-http.entrypoints=web"
+        - "traefik.http.routers.api-http.middlewares=api-https-redirect"
+        - "traefik.http.middlewares.api-https-redirect.redirectscheme.scheme=https"
+        # Auth Headers
+        - "traefik.http.routers.api.middlewares=core-api-headers"
+        - "traefik.http.middlewares.core-api-headers.headers.sslredirect=true"
+        - "traefik.http.middlewares.core-api-headers.headers.stsincludesubdomains=true"
+        - "traefik.http.middlewares.core-api-headers.headers.stspreload=true"
+        - "traefik.http.middlewares.core-api-headers.headers.stsseconds=31536000"
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
+
+volumes:
+  letsencrypt:
